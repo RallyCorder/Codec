@@ -1,11 +1,9 @@
-from kivy.uix.sandbox import Context
 import sys
 import threading
 import re
 import random
-import time
 from PySide6 import QtCore,QtWidgets,QtGui
-from PySide6.QtGui import QPixmap, QAction
+from PySide6.QtGui import QPixmap, QAction, QWindow
 from PySide6.QtCore import Qt,QSize
 
 
@@ -23,15 +21,9 @@ class Config():
         neutral=re.split("=",neutral)
         neutral.remove("neutral")
 
-        neutral2=config.readline()
-        neutral2=re.split("=",neutral2)
-        neutral2.remove("neutral2")
-
-        neutral3=config.readline()
-        neutral3=re.split("=",neutral3)
-        neutral3.remove("neutral3")
-
 Config()
+
+kill=False
 
 class Subs(QtWidgets.QWidget):
 
@@ -46,6 +38,8 @@ class Subs(QtWidgets.QWidget):
     def subsdecay(self):
         hider=threading.Timer(2,widgetdva.hide)
         hider.start()
+        stopspeak=threading.Timer(2,speechtech.speechend)
+        stopspeak.start()
 
 widgetdva=Subs()
 widgetdva.setMaximumHeight(35)
@@ -57,10 +51,8 @@ class マナ(QtWidgets.QWidget):
         super().__init__()
 
         self.pixmap=QPixmap(Config.neutral[0].strip(' \n'))
-        self.pixmap1=QPixmap(Config.neutral2[0].strip(' \n'))
         self.label=QtWidgets.QLabel(self)
         self.label.setPixmap(self.pixmap)
-        
         
         self.menubar=QtWidgets.QMenuBar(self)
         actiondd=self.menubar.addMenu('Actions')
@@ -80,40 +72,54 @@ class マナ(QtWidgets.QWidget):
             widgetdva.show()
             widgetdva.subtext.setText("Hello User!")
             widgetdva.subsdecay()
+            speechtech.speech()
 
 class Blink(QtWidgets.QWidget):
 
     def blinker(self):
-        widget.pixmap.setPixmap=QPixmap(widget.pixmap)
-        swap=threading.Timer(2,blinktech.blinker2)
+        swap=threading.Timer(0.05,blinktech.blinker2)
         swap.start()
-        print('1')
 
     def blinker2(self):
-        widget.pixmap.setPixmap(Config.neutral2[0].strip(' \n'))
-        swap=threading.Timer(2,blinktech.blinker3)
+        widget.label.move(-200,0)
+        swap=threading.Timer(0.05,blinktech.blinker3)
         swap.start()
-        swap.sleep(1)
-        swap.cancel()
-        print('2')
 
     def blinker3(self):
-        widget.pixmap=QPixmap(Config.neutral3[0].strip(' \n'))
-        swap=threading.Timer(2,blinktech.blinker4)
+        widget.label.move(-400,0)
+        swap=threading.Timer(0.05,blinktech.blinker4)
         swap.start()
-        print('3')
 
     def blinker4(self):
-        widget.pixmap=QPixmap(Config.neutral2[0].strip(' \n'))
-        swap=threading.Timer(2,blinktech.blinker5)
+        widget.label.move(-200,0)
+        swap=threading.Timer(0.05,blinktech.blinker5)
         swap.start()
-        print('4')
 
     def blinker5(self):
-        widget.pixmap=QPixmap(Config.neutral[0].strip(' \n'))
-        print('5')
+        widget.label.move(0,0)
         
 blinktech=Blink()
+
+class Dialog(QtWidgets.QWidget):
+
+    def speech(self):
+        widget.label.move(-600,0)
+        global swap
+        swap=threading.Timer(random.uniform(0.2,0.5),speechtech.speech2)
+        swap.start()
+            
+    def speech2(self):
+        widget.label.move(-800,0)
+        global swapling
+        swapling=threading.Timer(random.uniform(0.2,0.5),speechtech.speech)
+        swapling.start()
+
+    def speechend(self):
+        swap.cancel()
+        swapling.cancel()
+        widget.label.move(0,0)
+
+speechtech=Dialog()
 
 widget=マナ()
 widget.setMaximumSize(200,281)
