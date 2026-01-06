@@ -3,9 +3,9 @@ import threading
 import re
 import random
 from PySide6 import QtCore,QtWidgets,QtGui
-from PySide6.QtGui import QPixmap, QAction, QWindow
-from PySide6.QtCore import Qt,QSize,QObject
-
+from PySide6.QtWidgets import QApplication, QWidget
+from PySide6.QtGui import QPixmap, QAction, QWindow, QScreen
+from PySide6.QtCore import Qt, QSize, QObject
 
 app=QtWidgets.QApplication([])
 
@@ -136,7 +136,9 @@ class Dialog(QtWidgets.QWidget):
 speechtech=Dialog()
 
 widget=マナ()
-widget.setMaximumSize(200,281)
-widget.setMinimumSize(200,281)
+width=widget.pixmap.width()//5
+height=widget.pixmap.height()
+widget.setFixedSize(width,height)
 widget.show()
+widget.setWindowTitle('Codec')
 sys.exit(app.exec())
