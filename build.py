@@ -2,6 +2,9 @@ import sys
 import threading
 import re
 import random
+import os
+import platform
+import subprocess
 from PySide6 import QtCore,QtWidgets,QtGui
 from PySide6.QtWidgets import QApplication, QWidget
 from PySide6.QtGui import QPixmap, QAction, QWindow, QScreen
@@ -34,17 +37,17 @@ class Subs(QtWidgets.QWidget):
         self.subtext.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.layout.addWidget(self.subtext,0,0)
 
-    def subsdecay(self):
-        hider=threading.Timer(2,widgetdva.hide)
+    def subsdecay(self,lifetime):
+        hider=threading.Timer(lifetime,widgetdva.hide)
         hider.start()
-        stopspeak=threading.Timer(2,speechtech.speechend)
+        stopspeak=threading.Timer(lifetime,speechtech.speechend)
         stopspeak.start()
 
 widgetdva=Subs()
 widgetdva.setMaximumHeight(35)
 widgetdva.setMinimumHeight(35)
 
-class マナ(QtWidgets.QWidget):
+class Codec(QtWidgets.QWidget):
 
     def __init__(self):
         super().__init__()
@@ -66,6 +69,20 @@ class マナ(QtWidgets.QWidget):
         blinkact.triggered.connect(blinktech.blinker)
         actiondd.addAction(blinkact)
 
+        netact=QtGui.QAction('Check Network',self)
+        netact.triggered.connect(self.satcheck)
+        actiondd.addAction(netact)
+
+        helpdd=self.menubar.addMenu('Help')
+
+        helphelp=QtGui.QAction('Help',self)
+        helphelp.triggered.connect(self.helpdocs)
+        helpdd.addAction(helphelp)
+
+        abouthelp=QtGui.QAction('About',self)
+        abouthelp.triggered.connect(abouttech.show)
+        helpdd.addAction(abouthelp)
+
         self.pseudorandomblink=[1000,5101,6767,5849,4224,4015,3141,2722,6945,1334,5213,6014,3687]
 
         if Config.animated[0].strip(' \n') == 'False':
@@ -82,11 +99,50 @@ class マナ(QtWidgets.QWidget):
         else:
             widgetdva.show()
             widgetdva.subtext.setText("Hello User!")
-            widgetdva.subsdecay()
+            widgetdva.subsdecay(2)
         if Config.animated[0].strip(' \n') == 'False':
             pass
         else:
             speechtech.speech()
+
+    def satcheck(self):
+        dishback=os.system("ping -c 1 google.com")
+        if dishback == False:
+            widgetdva.show()
+            widgetdva.subtext.setText("Network Online!")
+            widgetdva.subsdecay(2)
+            speechtech.speech()
+        else:
+            widgetdva.show()
+            widgetdva.subtext.setText("Huh, it seems you aren't connected...")
+            widgetdva.subsdecay(4)
+            speechtech.speech()
+
+    def helpdocs(self):
+        if platform.system()=='Darwin':
+            subprocess.call(('open','docs.md'))
+        elif platform.system()=='Windows':
+            os.startfile('docs.md')
+        else:
+            subprocess.call(('xdg-open','docs.md'))
+
+class AboutInfo(QtWidgets.QWidget):
+
+    def __init__(self):
+        super().__init__()
+
+        self.layout=QtWidgets.QGridLayout(self)
+        self.logo=QPixmap('Andrei_tarkovsky_stamp_russia_2007.jpg')
+        self.label=QtWidgets.QLabel(self)
+        self.label.setPixmap(self.logo)
+        self.label.setGeometry(50,40,200,200)
+        self.abouttext=QtWidgets.QLabel("<b><a href='https://github.com/RallyCorder/Codec/'>Codec</a></b>, developped by <a href='https://github.com/RallyCorder/'>RallyCorder</a><br>Built with <a href='https://www.qt.io/development/qt-framework/python-bindings'>Qt6 PySide</a>")
+        self.abouttext.setOpenExternalLinks(True)
+        self.abouttext.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom)
+        self.layout.addWidget(self.abouttext)
+
+abouttech=AboutInfo()
+abouttech.setFixedSize(codecwidth,codecwidth)
 
 class Blink(QtWidgets.QWidget):
 
@@ -138,7 +194,7 @@ class Dialog(QtWidgets.QWidget):
 
 speechtech=Dialog()
 
-widget=マナ()
+widget=Codec()
 if widget.width > codecwidth:
     widget.setFixedSize(codecwidth,widget.height)
 else:
