@@ -1,4 +1,4 @@
-# UntitledDesktopBuddy
+# Codec
 a small companion program to help with some daily task
 
 ![inspiration](inspo.jpeg)
@@ -10,7 +10,9 @@ The program aims to allow swift interactions with graphical feedback
 - Likely based on Qt
 - Should stay out of the way of the user
 - Bonzi buddy, but without the malware and annoying pings
-- Easy customisability
 - Compatibility with other OS' and DEs'
 - Subtitles at the bottom of the screen
 - NO WINDOW BORDERS
+
+## !For Wayland Users!
+Due to how Wayland functions currently, moving the windows automatically isn't possible yet. I'm currently trying to find a way to resolve the issue, but I'm mostly relying on new Qt and Wayland additions. You may need to tinker with your DE's config to make the software function.
