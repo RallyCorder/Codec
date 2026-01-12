@@ -24,7 +24,6 @@ class Config():
         neutral=config.readline()
         neutral=re.split("=",neutral)
         neutral.remove("neutral")
-
 Config()
 
 class Subs(QtWidgets.QWidget):
@@ -42,7 +41,6 @@ class Subs(QtWidgets.QWidget):
         hider.start()
         stopspeak=threading.Timer(lifetime,speechtech.speechend)
         stopspeak.start()
-
 widgetdva=Subs()
 widgetdva.setMaximumHeight(35)
 widgetdva.setMinimumHeight(35)
@@ -61,7 +59,7 @@ class Codec(QtWidgets.QWidget):
         self.menubar=QtWidgets.QMenuBar(self)
         actiondd=self.menubar.addMenu('Actions')
 
-        pingact=QtGui.QAction('Ping', self)        
+        pingact=QtGui.QAction('Ping',self)        
         pingact.triggered.connect(self.pingsubs)
         actiondd.addAction(pingact)
 
@@ -72,6 +70,10 @@ class Codec(QtWidgets.QWidget):
         netact=QtGui.QAction('Check Network',self)
         netact.triggered.connect(self.satcheck)
         actiondd.addAction(netact)
+
+        useract=QtGui.QAction('Add a command',self)
+        useract.triggered.connect(usertech.show)
+        actiondd.addAction(useract)
 
         helpdd=self.menubar.addMenu('Help')
 
@@ -140,34 +142,49 @@ class AboutInfo(QtWidgets.QWidget):
         self.abouttext.setOpenExternalLinks(True)
         self.abouttext.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom)
         self.layout.addWidget(self.abouttext)
-
 abouttech=AboutInfo()
 abouttech.setFixedSize(codecwidth,codecwidth)
 
+def killuser():
+    usertech.hide()
+class UserCmd(QtWidgets.QWidget):
+
+    def __init__(self):
+        super().__init__()
+
+        self.layout=QtWidgets.QGridLayout(self)
+        self.userbox=QtWidgets.QTextEdit(self)
+        self.userbox.setPlaceholderText('Insert a terminal command. If you want a chain of commands, separate them with ''f1'' && ''f2''')
+        self.layout.addWidget(self.userbox)
+        self.submit=QtWidgets.QPushButton('Submit')
+        self.submit.clicked.connect(killuser)
+        self.layout.addWidget(self.submit,1,0)
+usertech=UserCmd()
+usertech.setFixedSize(500,100)
+
 class Blink(QtWidgets.QWidget):
 
-        def blinker(self):
-            swap=threading.Timer(0.05,blinktech.blinker2)
-            swap.start()
+    def blinker(self):
+        swap=threading.Timer(0.05,blinktech.blinker2)
+        swap.start()
 
-        def blinker2(self):
-            widget.label.move(int(-widget.width),0)
-            swap=threading.Timer(0.05,blinktech.blinker3)
-            swap.start()
+    def blinker2(self):
+        widget.label.move(int(-widget.width),0)
+        swap=threading.Timer(0.05,blinktech.blinker3)
+        swap.start()
 
-        def blinker3(self):
-            widget.label.move(int(-widget.width*2),0)
-            swap=threading.Timer(0.05,blinktech.blinker4)
-            swap.start()
+    def blinker3(self):
+        widget.label.move(int(-widget.width*2),0)
+        swap=threading.Timer(0.05,blinktech.blinker4)
+        swap.start()
 
-        def blinker4(self):
-            widget.label.move(int(-widget.width),0)
-            swap=threading.Timer(0.05,blinktech.blinker5)
-            swap.start()
+    def blinker4(self):
+        widget.label.move(int(-widget.width),0)
+        swap=threading.Timer(0.05,blinktech.blinker5)
+        swap.start()
 
-        def blinker5(self):
-            widget.label.move(0,0)
-        
+    def blinker5(self):
+        widget.label.move(0,0)     
 blinktech=Blink()
 
 class Dialog(QtWidgets.QWidget):
@@ -191,7 +208,6 @@ class Dialog(QtWidgets.QWidget):
             swap.cancel()
             swapling.cancel()
             widget.label.move(0,0)
-
 speechtech=Dialog()
 
 widget=Codec()

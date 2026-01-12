@@ -6,6 +6,11 @@ a small companion program to help with some daily task
 
 The program aims to allow swift interactions with graphical feedback
 
+## Roadmap
+- Add user precised terminal commands
+- A visual SSH picker
+
+
 ## Project notes
 - Likely based on Qt
 - Should stay out of the way of the user
@@ -15,4 +20,4 @@ The program aims to allow swift interactions with graphical feedback
 - NO WINDOW BORDERS
 
 ## !For Wayland Users!
-Due to how Wayland functions currently, moving the windows automatically isn't possible yet. I'm currently trying to find a way to resolve the issue, but I'm mostly relying on new Qt and Wayland additions. You may need to tinker with your DE's config to make the software function.
+Due to how Wayland's protocol functions currently, moving the windows automatically isn't possible yet. I'm currently trying to find a way to resolve the issue, but I'm mostly relying on new Qt and Wayland additions. You may need to tinker with your DE's config to make the software function.
