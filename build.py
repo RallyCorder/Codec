@@ -1,6 +1,5 @@
 import sys
 import threading
-import re
 import random
 import os
 import platform
@@ -8,23 +7,16 @@ import subprocess
 from PySide6 import QtCore,QtWidgets,QtGui
 from PySide6.QtWidgets import QApplication, QWidget
 from PySide6.QtGui import QPixmap, QAction, QWindow, QScreen
-from PySide6.QtCore import Qt, QSize, QObject
+from PySide6.QtCore import Qt, QSize, QObject, QSettings
 
 app=QtWidgets.QApplication([])
 codecwidth=int(QtWidgets.QApplication.primaryScreen().size().width()/5.33)
 
-class Config():
+conf=QSettings('Codec','codec')
 
-    with open('buddy.config','r') as config:
-
-        animated=config.readline()
-        animated=re.split("=",animated)
-        animated.remove("animated")
-
-        neutral=config.readline()
-        neutral=re.split("=",neutral)
-        neutral.remove("neutral")
-Config()
+conf.value('animated')
+conf.value('spritesheet')
+conf.sync
 
 class Subs(QtWidgets.QWidget):
 
@@ -39,8 +31,9 @@ class Subs(QtWidgets.QWidget):
     def subsdecay(self,lifetime):
         hider=threading.Timer(lifetime,widgetdva.hide)
         hider.start()
-        stopspeak=threading.Timer(lifetime,speechtech.speechend)
-        stopspeak.start()
+        if conf.value('animated') == 'True' or conf.value('animated') == 'true':
+            stopspeak=threading.Timer(lifetime,speechtech.speechend)
+            stopspeak.start()
 widgetdva=Subs()
 widgetdva.setMaximumHeight(35)
 widgetdva.setMinimumHeight(35)
@@ -50,7 +43,7 @@ class Codec(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
 
-        self.pixmap=QPixmap(Config.neutral[0].strip(' \n')).scaledToHeight(codecwidth)
+        self.pixmap=QPixmap(conf.value('spritesheet')).scaledToHeight(codecwidth)
         self.label=QtWidgets.QLabel(self)
         self.label.setPixmap(self.pixmap)
         self.height=self.pixmap.height()
@@ -87,9 +80,9 @@ class Codec(QtWidgets.QWidget):
 
         self.pseudorandomblink=[1000,5101,6767,5849,4224,4015,3141,2722,6945,1334,5213,6014,3687]
 
-        if Config.animated[0].strip(' \n') == 'False':
+        if conf.value('animated') == 'False' or conf.value('animated') == 'false':
             pass
-        else:
+        if conf.value('animated') == 'True' or conf.value('animated') == 'true':
             timer=QtCore.QTimer(self)
             timer.timeout.connect(blinktech.blinker)
             for i in range(442108):
@@ -102,9 +95,9 @@ class Codec(QtWidgets.QWidget):
             widgetdva.show()
             widgetdva.subtext.setText("Hello User!")
             widgetdva.subsdecay(2)
-        if Config.animated[0].strip(' \n') == 'False':
+        if conf.value('animated') == 'False' or conf.value('animated') == 'false':
             pass
-        else:
+        if conf.value('animated') == 'True' or conf.value('animated') == 'true':
             speechtech.speech()
 
     def satcheck(self):
@@ -189,9 +182,9 @@ blinktech=Blink()
 
 class Dialog(QtWidgets.QWidget):
 
-    if Config.animated[0].strip(' \n') == 'False':
+    if conf.value('animated') == 'False' or conf.value('animated') == 'false':
         pass
-    else:
+    if conf.value('animated') == 'True' or conf.value('animated') == 'true':
         def speech(self):
             widget.label.move(int(-widget.width*3),0)
             global swap
