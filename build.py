@@ -7,7 +7,7 @@ import subprocess
 from PySide6 import QtCore,QtWidgets,QtGui
 from PySide6.QtWidgets import QApplication, QWidget
 from PySide6.QtGui import QPixmap, QAction, QWindow, QScreen
-from PySide6.QtCore import Qt, QSize, QObject, QSettings
+from PySide6.QtCore import Qt, QSize, QObject, QSettings, Slot
 
 app=QtWidgets.QApplication([])
 codecwidth=int(QtWidgets.QApplication.primaryScreen().size().width()/5.33)
@@ -67,6 +67,8 @@ class Codec(QtWidgets.QWidget):
         useract=QtGui.QAction('Add a command',self)
         useract.triggered.connect(usertech.show)
         actiondd.addAction(useract)
+
+        self.customdd=self.menubar.addMenu('Custom')
 
         helpdd=self.menubar.addMenu('Help')
 
@@ -138,22 +140,44 @@ class AboutInfo(QtWidgets.QWidget):
 abouttech=AboutInfo()
 abouttech.setFixedSize(codecwidth,codecwidth)
 
-def killuser():
-    usertech.hide()
 class UserCmd(QtWidgets.QWidget):
 
     def __init__(self):
         super().__init__()
 
         self.layout=QtWidgets.QGridLayout(self)
-        self.userbox=QtWidgets.QTextEdit(self)
-        self.userbox.setPlaceholderText('Insert a terminal command. If you want a chain of commands, separate them with ''f1'' && ''f2''')
-        self.layout.addWidget(self.userbox)
+        
+        self.titlebox=QtWidgets.QTextEdit(self)
+        self.titlebox.setPlaceholderText("Insert the command's name")
+        self.titlebox.setTabChangesFocus(True)
+        self.layout.addWidget(self.titlebox,0,0)
+        self.cmdbox=QtWidgets.QTextEdit(self)
+        self.cmdbox.setPlaceholderText('Insert a terminal command. If you want a chain of commands, separate them with ''f1'' && ''f2''')
+        self.cmdbox.setTabChangesFocus(True)
+        self.layout.addWidget(self.cmdbox,1,0)
         self.submit=QtWidgets.QPushButton('Submit')
-        self.submit.clicked.connect(killuser)
-        self.layout.addWidget(self.submit,1,0)
+        self.submit.clicked.connect(self.addusercmd)
+        self.layout.addWidget(self.submit,2,0)
+
+    def addusercmd(self):
+        conf.beginGroup('Custom')
+        title=usertech.titlebox.toPlainText()
+        cmd=usertech.cmdbox.toPlainText()
+        cmdin=cmd+'user'
+        conf.setValue(title,cmd)
+        template= """{0}=QtGui.QAction('{0}',widget)
+def {2}():
+    os.system("{1}")
+{0}.triggered.connect({2})
+widget.customdd.addAction({0})""".format(title,cmd,cmdin)
+        code=compile(template,'<string>','exec')
+        exec(code)
+        conf.setValue(title,template)
+        conf.endGroup()
+        conf.sync()
+        usertech.hide()
 usertech=UserCmd()
-usertech.setFixedSize(500,100)
+usertech.setFixedSize(600,200)
 
 class Blink(QtWidgets.QWidget):
 
@@ -210,4 +234,5 @@ else:
     widget.setFixedSize(widget.width,widget.height)
 widget.setWindowTitle('Codec')
 widget.show()
+usertech.show()
 sys.exit(app.exec())
