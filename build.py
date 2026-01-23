@@ -69,13 +69,21 @@ class Codec(QtWidgets.QWidget):
         useract.triggered.connect(usertech.show)
         actiondd.addAction(useract)
 
-        self.customdd=self.menubar.addMenu('Custom')
         conf.beginGroup('Custom')
-        element=conf.allKeys
-        for element in range(3):
-            code=compile(conf.value('Hello'),'<string>','exec')
-            exec(code)
-            element+1
+        if conf.value('usercmd1')!=None:
+            self.customdd=self.menubar.addMenu('Custom')
+            self.stacker=1
+            def miniloop():
+                if conf.value('usercmd'+str(self.stacker))!=None:
+                    code=compile(conf.value('usercmd'+str(self.stacker)),'<string>','exec')
+                    exec(code)
+                    self.stacker+=1
+                    miniloop()
+                else:
+                    pass
+            miniloop()
+        else:
+            pass
         conf.endGroup()
 
         helpdd=self.menubar.addMenu('Help')
@@ -148,6 +156,7 @@ class AboutInfo(QtWidgets.QWidget):
 abouttech=AboutInfo()
 abouttech.setFixedSize(codecwidth,codecwidth)
 
+nb=1
 class UserCmd(QtWidgets.QWidget):
 
     def __init__(self):
@@ -166,34 +175,33 @@ class UserCmd(QtWidgets.QWidget):
         self.submit=QtWidgets.QPushButton('Submit')
         self.submit.clicked.connect(self.addusercmd)
         self.layout.addWidget(self.submit,2,0)
+        self.nbcap=1
 
     def addusercmd(self):
         conf.beginGroup('Custom')
         title=usertech.titlebox.toPlainText()
         cmd=usertech.cmdbox.toPlainText()
         cmdin=cmd+'user'
-        cmdsanitiser1=cmdin.replace(" ","")
-        cmdsanitiser2=cmdsanitiser1.replace("-","_")
-        cmdsanitiser3=cmdsanitiser2.replace("|","_")
-        cmdsanitiser4=cmdsanitiser3.replace("/","_")
-        cmdcleaned=cmdsanitiser4.replace("'\\'","_")
-        titlesanitiser1=title.replace(" ","")
-        titlesanitiser2=titlesanitiser1.replace("-","_")
-        titlesanitiser3=titlesanitiser2.replace("|","_")
-        titlesanitiser4=titlesanitiser3.replace("/","_")
-        titlecleaned=titlesanitiser4.replace("'\\'","_")
-        template= """{0}=QtGui.QAction('{0}',self)
-def {2}():
-    os.system("{1}")
-{0}.triggered.connect({2})
-self.customdd.addAction({0})""".format(titlecleaned,cmd,cmdcleaned)
+        cmdcleaned=re.sub("\\W","_",cmdin)
+        titlecleaned=re.sub("\\W","_",title)
+        template= """{1}=QtGui.QAction('{0}',self)
+def {3}():
+    os.system("{2}")
+{1}.triggered.connect({3})
+self.customdd.addAction({1})""".format(title,titlecleaned,cmd,cmdcleaned)
         code=compile(template,'<string>','exec')
-        conf.setValue(title,template)
+        def miniloop():
+            if conf.value('usercmd'+str(usertech.nbcap))!=None:
+                usertech.nbcap+=1
+                miniloop()
+            else:
+                conf.setValue('usercmd'+str(usertech.nbcap),template)
+        miniloop()
         conf.endGroup()
         conf.sync()
-        usertech.hide()
+        os.execv(sys.executable, ['Codec'] + sys.argv)
 usertech=UserCmd()
-usertech.setFixedSize(600,200)
+usertech.setFixedSize(codecwidth*2,codecwidth-codecwidth/3)
 
 class Blink(QtWidgets.QWidget):
 
