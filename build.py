@@ -4,6 +4,7 @@ import random
 import os
 import platform
 import subprocess
+import re
 from PySide6 import QtCore,QtWidgets,QtGui
 from PySide6.QtWidgets import QApplication, QWidget
 from PySide6.QtGui import QPixmap, QAction, QWindow, QScreen
@@ -69,6 +70,11 @@ class Codec(QtWidgets.QWidget):
         actiondd.addAction(useract)
 
         self.customdd=self.menubar.addMenu('Custom')
+        conf.beginGroup('Custom')
+        for element in range(3):
+            code=compile(conf.value('Hej'),'<string>','exec')
+            exec(code)
+        conf.endGroup()
 
         helpdd=self.menubar.addMenu('Help')
 
@@ -165,13 +171,12 @@ class UserCmd(QtWidgets.QWidget):
         cmd=usertech.cmdbox.toPlainText()
         cmdin=cmd+'user'
         conf.setValue(title,cmd)
-        template= """{0}=QtGui.QAction('{0}',widget)
+        template= """{0}=QtGui.QAction('{0}',self)
 def {2}():
     os.system("{1}")
 {0}.triggered.connect({2})
-widget.customdd.addAction({0})""".format(title,cmd,cmdin)
+self.customdd.addAction({0})""".format(title,cmd,cmdin)
         code=compile(template,'<string>','exec')
-        exec(code)
         conf.setValue(title,template)
         conf.endGroup()
         conf.sync()
@@ -234,5 +239,4 @@ else:
     widget.setFixedSize(widget.width,widget.height)
 widget.setWindowTitle('Codec')
 widget.show()
-usertech.show()
 sys.exit(app.exec())
