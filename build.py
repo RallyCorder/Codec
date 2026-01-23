@@ -71,9 +71,11 @@ class Codec(QtWidgets.QWidget):
 
         self.customdd=self.menubar.addMenu('Custom')
         conf.beginGroup('Custom')
+        element=conf.allKeys
         for element in range(3):
-            code=compile(conf.value('Hej'),'<string>','exec')
+            code=compile(conf.value('Hello'),'<string>','exec')
             exec(code)
+            element+1
         conf.endGroup()
 
         helpdd=self.menubar.addMenu('Help')
@@ -170,12 +172,21 @@ class UserCmd(QtWidgets.QWidget):
         title=usertech.titlebox.toPlainText()
         cmd=usertech.cmdbox.toPlainText()
         cmdin=cmd+'user'
-        conf.setValue(title,cmd)
+        cmdsanitiser1=cmdin.replace(" ","")
+        cmdsanitiser2=cmdsanitiser1.replace("-","_")
+        cmdsanitiser3=cmdsanitiser2.replace("|","_")
+        cmdsanitiser4=cmdsanitiser3.replace("/","_")
+        cmdcleaned=cmdsanitiser4.replace("'\\'","_")
+        titlesanitiser1=title.replace(" ","")
+        titlesanitiser2=titlesanitiser1.replace("-","_")
+        titlesanitiser3=titlesanitiser2.replace("|","_")
+        titlesanitiser4=titlesanitiser3.replace("/","_")
+        titlecleaned=titlesanitiser4.replace("'\\'","_")
         template= """{0}=QtGui.QAction('{0}',self)
 def {2}():
     os.system("{1}")
 {0}.triggered.connect({2})
-self.customdd.addAction({0})""".format(title,cmd,cmdin)
+self.customdd.addAction({0})""".format(titlecleaned,cmd,cmdcleaned)
         code=compile(template,'<string>','exec')
         conf.setValue(title,template)
         conf.endGroup()
