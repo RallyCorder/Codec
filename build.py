@@ -5,6 +5,7 @@ import os
 import platform
 import subprocess
 import re
+import paramiko
 from PySide6 import QtCore,QtWidgets,QtGui
 from PySide6.QtWidgets import QApplication, QWidget
 from PySide6.QtGui import QPixmap, QAction, QWindow, QScreen
@@ -68,6 +69,10 @@ class Codec(QtWidgets.QWidget):
         useract=QtGui.QAction('Add a command',self)
         useract.triggered.connect(usertech.show)
         actiondd.addAction(useract)
+
+        sshact=QtGui.QAction('Open the SSH picker',self)
+        sshact.triggered.connect(sshtech.show)
+        actiondd.addAction(sshact)
 
         conf.beginGroup('Custom')
         if conf.value('usercmd1')!=None:
@@ -203,6 +208,91 @@ self.customdd.addAction({1})""".format(title,titlecleaned,cmd,cmdcleaned)
 usertech=UserCmd()
 usertech.setFixedSize(codecwidth*2,codecwidth-codecwidth/3)
 
+class SSHAgent(QtWidgets.QWidget):
+
+    def __init__(self):
+        super().__init__()
+
+        self.layout=QtWidgets.QGridLayout(self)
+
+        self.ssh=paramiko.SSHClient()
+
+        self.quickbox=QtWidgets.QTextEdit(self)
+        self.quickbox.setPlaceholderText("Insert a ssh command 'ssh -p 2222 foo@bar.org'")
+        self.layout.addWidget(self.quickbox)
+        self.quickbox.setTabChangesFocus(True)
+        self.advanced=QtWidgets.QPushButton(self)
+        self.advanced.setText('Advanced')
+        self.advanced.clicked.connect(self.advancedmenu)
+        self.layout.addWidget(self.advanced)
+        self.nick=QtWidgets.QPlainTextEdit(self)
+        self.nick.setPlaceholderText('Enter a nickname')
+        self.layout.addWidget(self.nick)
+        self.nick.setTabChangesFocus(True)
+        self.nick.hide()
+        self.hostaddress=QtWidgets.QPlainTextEdit(self)
+        self.hostaddress.setPlaceholderText('Enter the address or hostname')
+        self.layout.addWidget(self.hostaddress)
+        self.hostaddress.setTabChangesFocus(True)
+        self.hostaddress.hide()
+        self.username=QtWidgets.QPlainTextEdit(self)
+        self.username.setPlaceholderText('Enter the username')
+        self.layout.addWidget(self.username)
+        self.username.setTabChangesFocus(True)
+        self.username.hide()
+        self.hostport=QtWidgets.QPlainTextEdit(self)
+        self.hostport.setPlaceholderText('Enter the port')
+        self.layout.addWidget(self.hostport)
+        self.hostport.setTabChangesFocus(True)
+        self.hostport.hide()
+        self.key=QtWidgets.QPlainTextEdit(self)
+        self.key.setPlaceholderText('Enter the password')
+        self.layout.addWidget(self.key)
+        self.key.setTabChangesFocus(True)
+        self.key.hide()
+        self.connecter=QtWidgets.QPushButton(self)
+        self.connecter.setText('Connect')
+        self.connecter.clicked.connect(self.normalconnect)
+        self.layout.addWidget(self.connecter)
+
+    def normalmenu(self):
+        self.quickbox.show()
+        self.advanced.setText('Advanced')
+        self.advanced.clicked.connect(self.advancedmenu)
+        self.connecter.clicked.connect(self.normalconnect)
+        self.nick.hide()
+        self.hostaddress.hide()
+        self.username.hide()
+        self.hostport.hide()
+        self.key.hide()
+        sshtech.setFixedSize(codecwidth*1.15,codecwidth/2.65)
+
+    def advancedmenu(self):
+        self.quickbox.hide()
+        self.advanced.setText('Normal')
+        self.advanced.clicked.connect(self.normalmenu)
+        self.connecter.clicked.connect(self.advancedconnect)
+        self.nick.show()
+        self.hostaddress.show()
+        self.username.show()
+        self.hostport.show()
+        self.key.show()
+        sshtech.setFixedSize(codecwidth*1.15,codecwidth*0.85)
+
+    def normalconnect(self):
+        text=sshtech.quickbox.toPlainText()
+        os.system(text)
+
+    def advancedconnect(self):
+        self.ssh.connect(hostname=str(self.hostaddress))
+        if paramiko.AuthenticationException:
+            print('failure :[')
+        else:
+            print('yippee!')
+sshtech=SSHAgent()
+sshtech.setFixedSize(codecwidth*1.15,codecwidth/2.65)
+
+
 class Blink(QtWidgets.QWidget):
 
     def blinker(self):
@@ -258,4 +348,5 @@ else:
     widget.setFixedSize(widget.width,widget.height)
 widget.setWindowTitle('Codec')
 widget.show()
+sshtech.show()
 sys.exit(app.exec())
