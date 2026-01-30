@@ -245,15 +245,26 @@ class SSHAgent(QtWidgets.QWidget):
         self.layout.addWidget(self.hostport)
         self.hostport.setTabChangesFocus(True)
         self.hostport.hide()
-        self.key=QtWidgets.QPlainTextEdit(self)
-        self.key.setPlaceholderText('Enter the password')
-        self.layout.addWidget(self.key)
-        self.key.setTabChangesFocus(True)
-        self.key.hide()
+        self.password=QtWidgets.QPlainTextEdit(self)
+        self.password.setPlaceholderText('Enter the password')
+        self.layout.addWidget(self.password)
+        self.password.setTabChangesFocus(True)
+        self.password.hide()
+        self.keyButton=QtWidgets.QPushButton(self)
+        self.keyButton.clicked.connect(self.openFile)
+        self.keyButton.setText('Open a key file')
+        self.layout.addWidget(self.keyButton)
+        self.keyButton.hide()
+        self.key=QtWidgets.QFileDialog(self)
         self.connecter=QtWidgets.QPushButton(self)
         self.connecter.setText('Connect')
         self.connecter.clicked.connect(self.normalconnect)
         self.layout.addWidget(self.connecter)
+
+    def openFile(self):
+        self.key.setViewMode(QtWidgets.QFileDialog.ViewMode.List)
+        self.key=QtWidgets.QFileDialog.getOpenFileUrl()
+        print(self.key)
 
     def normalmenu(self):
         self.quickbox.show()
@@ -264,7 +275,8 @@ class SSHAgent(QtWidgets.QWidget):
         self.hostaddress.hide()
         self.username.hide()
         self.hostport.hide()
-        self.key.hide()
+        self.password.hide()
+        self.keyButton.hide()
         sshtech.setFixedSize(codecwidth*1.15,codecwidth/2.65)
 
     def advancedmenu(self):
@@ -276,19 +288,28 @@ class SSHAgent(QtWidgets.QWidget):
         self.hostaddress.show()
         self.username.show()
         self.hostport.show()
-        self.key.show()
-        sshtech.setFixedSize(codecwidth*1.15,codecwidth*0.85)
+        self.password.show()
+        self.keyButton.show()
+        sshtech.setFixedSize(codecwidth*1.15,codecwidth)
 
     def normalconnect(self):
         text=sshtech.quickbox.toPlainText()
         os.system(text)
 
     def advancedconnect(self):
-        self.ssh.connect(hostname=str(self.hostaddress))
-        if paramiko.AuthenticationException:
-            print('failure :[')
-        else:
-            print('yippee!')
+        address=self.hostaddress.toPlainText()
+        self.ssh.load_system_host_keys()
+        self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        try:
+            self.ssh.connect(hostname='sdf.org',port=22,username='new',timeout=500,)
+            print("I'm in!")
+        except paramiko.SSHException as error:
+            widgetdva.show()
+            widgetdva.subtext.setText(f"There seems to be an error... [{error}]")
+            widgetdva.subsdecay(4)
+            speechtech.speech()
+            print(f"There seems to be an error...\nSSH Error: {error}")
+
 sshtech=SSHAgent()
 sshtech.setFixedSize(codecwidth*1.15,codecwidth/2.65)
 
@@ -347,6 +368,6 @@ if widget.width > codecwidth:
 else:
     widget.setFixedSize(widget.width,widget.height)
 widget.setWindowTitle('Codec')
-widget.show()
+widget.hide()
 sshtech.show()
 sys.exit(app.exec())
