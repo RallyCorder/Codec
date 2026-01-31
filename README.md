@@ -1,7 +1,7 @@
-# Codec
-a small companion program to help with some daily task
+![Banner](assets/logo-text.png)
+## *A small companion program to help with some daily task*
 
-![inspiration](inspo.jpeg)
+![inspiration](assets/inspo.jpeg)
 *Inspired by the dialog boxes of 『新世紀エヴァンゲリオン鋼鉄のガールフレンド』*
 
 The program aims to allow swift interactions with graphical feedback
