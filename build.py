@@ -9,7 +9,7 @@ import paramiko
 from PySide6 import QtCore,QtWidgets,QtGui
 from PySide6.QtWidgets import QApplication, QWidget
 from PySide6.QtGui import QPixmap, QAction, QWindow, QScreen
-from PySide6.QtCore import Qt, QSize, QObject, QSettings, Slot
+from PySide6.QtCore import Qt, QSize, QObject, QSettings
 
 app=QtWidgets.QApplication([])
 codecwidth=int(QtWidgets.QApplication.primaryScreen().size().width()/5.33)
@@ -70,7 +70,7 @@ class Codec(QtWidgets.QWidget):
         useract.triggered.connect(usertech.show)
         actiondd.addAction(useract)
 
-        sshact=QtGui.QAction('Open the SSH picker',self)
+        sshact=QtGui.QAction('Open the SSH checker',self)
         sshact.triggered.connect(sshtech.show)
         actiondd.addAction(sshact)
 
@@ -214,9 +214,6 @@ class SSHAgent(QtWidgets.QWidget):
         super().__init__()
 
         self.layout=QtWidgets.QGridLayout(self)
-
-        self.ssh=paramiko.SSHClient()
-
         self.quickbox=QtWidgets.QTextEdit(self)
         self.quickbox.setPlaceholderText("Insert a ssh command 'ssh -p 2222 foo@bar.org'")
         self.layout.addWidget(self.quickbox)
@@ -263,8 +260,20 @@ class SSHAgent(QtWidgets.QWidget):
 
     def openFile(self):
         self.key.setViewMode(QtWidgets.QFileDialog.ViewMode.List)
-        self.key=QtWidgets.QFileDialog.getOpenFileUrl()
-        print(self.key)
+        self.key=QtWidgets.QFileDialog.getOpenFileUrl().__str__()
+        clear=re.split("'",self.key)
+        clear.pop(0)
+        for x in range(3):
+            clear.pop(1)
+        self.key=''.join(clear)
+        clearer=re.split('//',self.key)
+        clearer.pop(0)
+        self.key=''.join(clearer)
+        if platform.system()=='Windows':
+            cleared=self.key.replace('/','C:\\',1)
+        else:
+            cleared=self.key
+        print(cleared)
 
     def normalmenu(self):
         self.quickbox.show()
@@ -298,10 +307,25 @@ class SSHAgent(QtWidgets.QWidget):
 
     def advancedconnect(self):
         address=self.hostaddress.toPlainText()
-        self.ssh.load_system_host_keys()
-        self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        usernick=self.username.toPlainText()
+        passw=self.password.toPlainText()
+        portu=self.hostport.toPlainText()
+        keyf=self.key
+        ssh=paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:
-            self.ssh.connect(hostname='sdf.org',port=22,username='new',timeout=500,)
+            if portu=='' and keyf=='':
+                ssh.connect(hostname=address,username=usernick,password=passw)
+            elif keyf=='':
+                ssh.connect(hostname=address,username=usernick,password=passw,port=portu)
+            elif portu=='':
+                ssh.connect(hostname=address,username=usernick,password=passw,key_filename=keyf)
+            else:
+                ssh.connect(hostname=address,username=usernick,password=passw,port=portu,key_filename=keyf)
+            widgetdva.show()
+            widgetdva.subtext.setText("I'm in!")
+            widgetdva.subsdecay(2)
+            speechtech.speech()
             print("I'm in!")
         except paramiko.SSHException as error:
             widgetdva.show()
@@ -309,7 +333,9 @@ class SSHAgent(QtWidgets.QWidget):
             widgetdva.subsdecay(4)
             speechtech.speech()
             print(f"There seems to be an error...\nSSH Error: {error}")
-
+        finally:
+            ssh.close()
+            
 sshtech=SSHAgent()
 sshtech.setFixedSize(codecwidth*1.15,codecwidth/2.65)
 
@@ -368,6 +394,6 @@ if widget.width > codecwidth:
 else:
     widget.setFixedSize(widget.width,widget.height)
 widget.setWindowTitle('Codec')
-widget.hide()
+widget.show()
 sshtech.show()
 sys.exit(app.exec())
