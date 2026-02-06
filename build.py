@@ -12,6 +12,10 @@ from PySide6.QtGui import QPixmap, QAction, QWindow, QScreen, QIcon
 from PySide6.QtCore import Qt, QSize, QObject, QSettings
 
 app=QtWidgets.QApplication([])
+icon=QIcon(os.path.dirname(os.path.realpath(__file__))+'/assets/logo.png')
+app.setApplicationName('Codec')
+app.setApplicationDisplayName('Codec')
+app.setWindowIcon(icon)
 codecwidth=int(QtWidgets.QApplication.primaryScreen().size().width()/5.33)
 
 conf=QSettings('Codec','codec')
@@ -19,8 +23,8 @@ conf=QSettings('Codec','codec')
 conf.value('animated')
 conf.value('spritesheet')
 conf.value('ssh_known_hosts')
-conf.value('ssh_authorized_keys')
-conf.sync
+conf.value('ssh_athorised_keys')
+conf.sync()
 
 class Subs(QtWidgets.QWidget):
 
@@ -41,6 +45,8 @@ class Subs(QtWidgets.QWidget):
 widgetdva=Subs()
 widgetdva.setMaximumHeight(35)
 widgetdva.setMinimumHeight(35)
+widgetdva.setWindowFlags(QtCore.Qt.WindowType.WindowStaysOnTopHint|QtCore.Qt.WindowType.FramelessWindowHint)
+widgetdva.setWindowTitle('CodecSpeech')
 
 class Codec(QtWidgets.QWidget):
 
@@ -54,40 +60,43 @@ class Codec(QtWidgets.QWidget):
         self.width=self.pixmap.width()//5
         
         self.menubar=QtWidgets.QMenuBar(self)
-        actiondd=self.menubar.addMenu('Actions')
+        logo=self.menubar.addMenu(icon,'Codec')
 
-        pingact=QtGui.QAction('Ping',self)        
+        actiondd=self.menubar.addMenu('&Actions')
+
+        pingact=QtGui.QAction('&Ping',self)        
         pingact.triggered.connect(self.pingsubs)
         actiondd.addAction(pingact)
 
-        blinkact=QtGui.QAction('Blink',self)
+        blinkact=QtGui.QAction('&Blink',self)
         blinkact.triggered.connect(blinktech.blinker)
         actiondd.addAction(blinkact)
+        blinkact.setShortcut(Qt.Key.Key_Space)
 
-        netact=QtGui.QAction('Check Network',self)
+        netact=QtGui.QAction('Check &Network',self)
         netact.triggered.connect(self.satcheck)
         actiondd.addAction(netact)
 
-        useract=QtGui.QAction('Add a command',self)
+        useract=QtGui.QAction('Add a &command',self)
         useract.triggered.connect(usertech.show)
         actiondd.addAction(useract)
 
-        sshcact=QtGui.QAction('Add an SSH connection',self)
+        sshcact=QtGui.QAction('&Add an SSH connection',self)
         sshcact.triggered.connect(sshctech.show)
         actiondd.addAction(sshcact)
 
-        sshpact=QtGui.QAction('Check your SSH connections',self)
+        sshpact=QtGui.QAction('&Check your SSH connections',self)
         sshpact.triggered.connect(sshptech.show)
         actiondd.addAction(sshpact)
 
-        quitact=QtGui.QAction('Quit',self)
+        quitact=QtGui.QAction('&Quit',self)
         quitact.triggered.connect(self.quitter)
         actiondd.addAction(quitact)
         quitact.setShortcut(Qt.Modifier.CTRL | Qt.Key.Key_Q)
 
         conf.beginGroup('Custom')
         if conf.value('usercmd1')!=None:
-            self.customdd=self.menubar.addMenu('Custom')
+            self.customdd=self.menubar.addMenu('&Custom')
             self.stacker=1
             def miniloop():
                 if conf.value('usercmd'+str(self.stacker))!=None:
@@ -102,16 +111,17 @@ class Codec(QtWidgets.QWidget):
             pass
         conf.endGroup()
 
-        helpdd=self.menubar.addMenu('Help')
+        helpdd=self.menubar.addMenu('&Help')
 
-        helphelp=QtGui.QAction('Help',self)
+        helphelp=QtGui.QAction('&Help',self)
         helphelp.triggered.connect(self.helpdocs)
         helpdd.addAction(helphelp)
         helphelp.setShortcut(Qt.Modifier.CTRL | Qt.Key.Key_H)
 
-        abouthelp=QtGui.QAction('About',self)
+        abouthelp=QtGui.QAction('&About',self)
         abouthelp.triggered.connect(abouttech.show)
         helpdd.addAction(abouthelp)
+        abouthelp.setShortcut(Qt.Modifier.CTRL | Qt.Key_I)
 
         self.pseudorandomblink=[1000,5101,6767,5849,4224,4015,3141,2722,6945,1334,5213,6014,3687]
 
@@ -150,11 +160,11 @@ class Codec(QtWidgets.QWidget):
 
     def helpdocs(self):
         if platform.system()=='Darwin':
-            subprocess.call(('open','docs.md'))
+            subprocess.call(('open',os.path.dirname(os.path.realpath(__file__))+'/docs.md'))
         elif platform.system()=='Windows':
-            os.startfile('docs.md')
+            os.startfile(os.path.dirname(os.path.realpath(__file__))+'/docs.md')
         else:
-            subprocess.call(('xdg-open','docs.md'))
+            subprocess.call(('xdg-open',os.path.dirname(os.path.realpath(__file__))+'/docs.md'))
 
     def quitter(self):
         sys.exit(app.exec())
@@ -165,16 +175,18 @@ class AboutInfo(QtWidgets.QWidget):
         super().__init__()
 
         self.layout=QtWidgets.QGridLayout(self)
-        self.logo=QPixmap('Andrei_tarkovsky_stamp_russia_2007.jpg')
+        self.logo=QPixmap(os.path.dirname(os.path.realpath(__file__))+'/assets/logo.png')
         self.label=QtWidgets.QLabel(self)
         self.label.setPixmap(self.logo)
-        self.label.setGeometry(50,40,200,200)
-        self.abouttext=QtWidgets.QLabel("<b><a href='https://github.com/RallyCorder/Codec/'>Codec</a></b>, developped by <a href='https://github.com/RallyCorder/'>RallyCorder</a><br>Built with <a href='https://www.qt.io/development/qt-framework/python-bindings'>Qt6 PySide</a>")
+        self.label.setGeometry(0,0,256,256)
+        self.layout.addWidget(self.label,0,0)
+        self.abouttext=QtWidgets.QLabel("<h1><a href='https://github.com/RallyCorder/Codec/'>Codec</a></h1>\n developped by <a href='https://github.com/RallyCorder/'>RallyCorder</a><br>Built with <a href='https://www.qt.io/development/qt-framework/python-bindings'>Qt6 PySide</a>")
         self.abouttext.setOpenExternalLinks(True)
-        self.abouttext.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom)
-        self.layout.addWidget(self.abouttext)
+        self.layout.addWidget(self.abouttext,0,1)
 abouttech=AboutInfo()
-abouttech.setFixedSize(codecwidth,codecwidth)
+abouttech.setWindowTitle('About Codec')
+abouttech.setWindowIcon(icon)
+abouttech.setFixedSize(codecwidth*1.5,codecwidth)
 
 nb=1
 class UserCmd(QtWidgets.QWidget):
@@ -204,7 +216,7 @@ class UserCmd(QtWidgets.QWidget):
         cmdin=cmd+'user'
         cmdcleaned=re.sub("\\W","_",cmdin)
         titlecleaned=re.sub("\\W","_",title)
-        template= """{1}=QtGui.QAction('{0}',self)
+        template= """{1}=QtGui.QAction('&{0}',self)
 def {3}():
     os.system("{2}")
 {1}.triggered.connect({3})
@@ -221,6 +233,8 @@ self.customdd.addAction({1})""".format(title,titlecleaned,cmd,cmdcleaned)
         conf.sync()
         os.execv(sys.executable, ['Codec'] + sys.argv)
 usertech=UserCmd()
+usertech.setWindowTitle('Add a user command')
+usertech.setWindowIcon(icon)
 usertech.setFixedSize(codecwidth*2,codecwidth-codecwidth/3)
 
 class SSHCAgent(QtWidgets.QWidget):
@@ -344,6 +358,8 @@ class SSHCAgent(QtWidgets.QWidget):
             ssh.close()
             
 sshctech=SSHCAgent()
+sshctech.setWindowTitle('Add an SSH connection')
+sshctech.setWindowIcon(icon)
 sshctech.setFixedSize(codecwidth*1.15,codecwidth/2.65)
 
 class SSHPAgent(QtWidgets.QWidget):
@@ -376,34 +392,38 @@ class SSHPAgent(QtWidgets.QWidget):
         self.inputer.hide()
         self.knownhostsValue=None
         self.authorizedkeysValue=None
-        if conf.value('ssh_known_hosts') != '' and conf.value('ssh_authorized_keys') != '':
+        if conf.value('ssh_known_hosts') != '' and conf.value('ssh_athorised_keys') != '':
             self.addUp()
             self.knownhostsValue=conf.value('ssh_known_hosts')
-            self.authorizedkeysValue=conf.value('ssh_authorized_keys')
+            self.authorizedkeysValue=conf.value('ssh_athorised_keys')
+        style=self.style()
+        good_icon=style.standardIcon(QStyle.StandardPixmap.SP_DialogApplyButton)
+        if conf.value('ssh_known_hosts') != '':
+            self.knownhostsButton.setIcon(good_icon)
+        if conf.value('ssh_authorised_keys') != '':
+            self.authorizedkeysButton.setIcon(good_icon)
 
     def openKHFile(self):
-        self.authorizedkeysValue=QtWidgets.QFileDialog()
-        self.authorizedkeysValue.setViewMode(QtWidgets.QFileDialog.ViewMode.List)
-        self.authorizedkeysValue=QtWidgets.QFileDialog.getOpenFileUrl().__str__()
-        clear=re.split("'",self.authorizedkeysValue)
+        self.knownhostsValue=QtWidgets.QFileDialog()
+        self.knownhostsValue=QtWidgets.QFileDialog.getOpenFileUrl().__str__()
+        clear=re.split("'",self.knownhostsValue)
         clear.pop(0)
         for x in range(3):
             clear.pop(1)
-        self.authorizedkeysValue=''.join(clear)
-        clearer=re.split('//',self.authorizedkeysValue)
+        self.knownhostsValue=''.join(clear)
+        clearer=re.split('//',self.knownhostsValue)
         clearer.pop(0)
-        self.authorizedkeysValue=''.join(clearer)
+        self.knownhostsValue=''.join(clearer)
         if platform.system()=='Windows':
-            cleared=self.authorizedkeysValue.replace('/','C:\\',1)
+            cleared=self.knownhostsValue.replace('/','C:\\',1)
         else:
-            cleared=self.authorizedkeysValue
-        conf.setValue('ssh_known_hosts',self.authorizedkeysValue)
-        conf.sync
+            cleared=self.knownhostsValue
+        conf.setValue('ssh_known_hosts',self.knownhostsValue)
+        conf.sync()
         os.execv(sys.executable, ['Codec'] + sys.argv)
 
     def openAKFile(self):
         self.authorizedkeysValue=QtWidgets.QFileDialog()
-        self.authorizedkeysValue.setViewMode(QtWidgets.QFileDialog.ViewMode.List)
         self.authorizedkeysValue=QtWidgets.QFileDialog.getOpenFileUrl().__str__()
         clear=re.split("'",self.authorizedkeysValue)
         clear.pop(0)
@@ -417,15 +437,15 @@ class SSHPAgent(QtWidgets.QWidget):
             cleared=self.authorizedkeysValue.replace('/','C:\\',1)
         else:
             cleared=self.authorizedkeysValue
-        conf.setValue('ssh_authorized_keys',self.authorizedkeysValue)
-        conf.sync
+        conf.setValue('ssh_athorised_keys',self.authorizedkeysValue)
+        conf.sync()
         os.execv(sys.executable, ['Codec'] + sys.argv)
 
     def addUp(self):
         ssh=paramiko.SSHClient()
         ssh.load_host_keys(conf.value('ssh_known_hosts'))
         x=0
-        authkeys=conf.value('ssh_authorized_keys')
+        authkeys=conf.value('ssh_athorised_keys')
         for element in range(len(ssh._host_keys._entries)):
             entryname=ssh._host_keys._entries[x].__str__()
             clearname=re.split("'",entryname)
@@ -437,7 +457,7 @@ class SSHPAgent(QtWidgets.QWidget):
 online_icon=style.standardIcon(QStyle.StandardPixmap.SP_DialogYesButton)
 offline_icon=style.standardIcon(QStyle.StandardPixmap.SP_DialogNoButton)
 self.{0}=QtWidgets.QPushButton(self)
-check=os.system('ping -c 1 -W 5 {1}')
+check=os.system('ping -c 1 -W 1 {1}')
 if check==0:
     self.{0}.setIcon(online_icon)
 else:
@@ -491,6 +511,8 @@ self.layout.addWidget(self.{0})""".format('connection'+str(x),entryname,authkeys
             x+=1
 
 sshptech=SSHPAgent()
+sshptech.setWindowTitle('Check your SSH connections')
+sshptech.setWindowIcon(icon)
 sshptech.setFixedWidth(codecwidth)
 
 
@@ -549,5 +571,6 @@ else:
     widget.setFixedSize(widget.width,widget.height)
 widget.setWindowFlags(QtCore.Qt.WindowType.WindowStaysOnTopHint|QtCore.Qt.WindowType.FramelessWindowHint)
 widget.setWindowTitle('Codec')
+widget.setWindowIcon(icon)
 widget.show()
 sys.exit(app.exec())
