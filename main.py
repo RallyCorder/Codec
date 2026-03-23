@@ -23,7 +23,7 @@ conf=QSettings('Codec','codec')
 conf.value('animated')
 conf.value('spritesheet')
 conf.value('ssh_known_hosts')
-conf.value('ssh_athorised_keys')
+conf.value('ssh_authorised_keys')
 conf.sync()
 
 class Subs(QtWidgets.QWidget):
@@ -36,6 +36,9 @@ class Subs(QtWidgets.QWidget):
         self.subtext.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.layout.addWidget(self.subtext,0,0)
 
+    def settext(self,text):
+        self.subtext.setText(text)
+
     def subsdecay(self,lifetime):
         hider=threading.Timer(lifetime,widgetdva.hide)
         hider.start()
@@ -43,10 +46,24 @@ class Subs(QtWidgets.QWidget):
             stopspeak=threading.Timer(lifetime,speechtech.speechend)
             stopspeak.start()
 widgetdva=Subs()
-widgetdva.setMaximumHeight(35)
-widgetdva.setMinimumHeight(35)
+widgetdva.setFixedHeight(35)
 widgetdva.setWindowFlags(QtCore.Qt.WindowType.WindowStaysOnTopHint|QtCore.Qt.WindowType.FramelessWindowHint)
 widgetdva.setWindowTitle('CodecSpeech')
+
+class AboutInfo(QtWidgets.QWidget):
+
+    def __init__(self):
+        super().__init__()
+
+        self.layout=QtWidgets.QGridLayout(self)
+        self.logo=QPixmap(os.path.dirname(os.path.realpath(__file__))+'/assets/logo.png')
+        self.label=QtWidgets.QLabel(self)
+        self.label.setPixmap(self.logo)
+        self.label.setGeometry(0,0,256,256)
+        self.layout.addWidget(self.label,0,0)
+        self.abouttext=QtWidgets.QLabel("<h1><a href='https://github.com/RallyCorder/Codec/'>Codec</a></h1>\n developped by <a href='https://github.com/RallyCorder/'>RallyCorder</a><br>Built with <a href='https://www.qt.io/development/qt-framework/python-bindings'>Qt6 PySide</a>")
+        self.abouttext.setOpenExternalLinks(True)
+        self.layout.addWidget(self.abouttext,0,1)
 
 class Codec(QtWidgets.QWidget):
 
@@ -78,15 +95,15 @@ class Codec(QtWidgets.QWidget):
         actiondd.addAction(netact)
 
         useract=QtGui.QAction('Add a &command',self)
-        useract.triggered.connect(usertech.show)
+        useract.triggered.connect(self.usercmd)
         actiondd.addAction(useract)
 
         sshcact=QtGui.QAction('&Add an SSH connection',self)
-        sshcact.triggered.connect(sshctech.show)
+        sshcact.triggered.connect(self.sshc)
         actiondd.addAction(sshcact)
 
         sshpact=QtGui.QAction('&Check your SSH connections',self)
-        sshpact.triggered.connect(sshptech.show)
+        sshpact.triggered.connect(self.sshp)
         actiondd.addAction(sshpact)
 
         quitact=QtGui.QAction('&Quit',self)
@@ -119,7 +136,7 @@ class Codec(QtWidgets.QWidget):
         helphelp.setShortcut(Qt.Modifier.CTRL | Qt.Key.Key_H)
 
         abouthelp=QtGui.QAction('&About',self)
-        abouthelp.triggered.connect(abouttech.show)
+        abouthelp.triggered.connect(self.about)
         helpdd.addAction(abouthelp)
         abouthelp.setShortcut(Qt.Modifier.CTRL | Qt.Key_I)
 
@@ -133,12 +150,40 @@ class Codec(QtWidgets.QWidget):
             for i in range(442108):
                 timer.start(self.pseudorandomblink[0+1])
 
+    def about(self):
+        self.abouttech=AboutInfo()
+        self.abouttech.show()
+        self.abouttech.setWindowTitle('About Codec')
+        self.abouttech.setWindowIcon(icon)
+        self.abouttech.setFixedSize(codecwidth*1.5,codecwidth)
+
+    def usercmd(self):
+        self.usertech=UserCmd()
+        self.usertech.show()
+        self.usertech.setWindowTitle('Add a user command')
+        self.usertech.setWindowIcon(icon)
+        self.usertech.setFixedSize(codecwidth*2,codecwidth-codecwidth/3)
+
+    def sshc(self):
+        self.sshctech=SSHCAgent()
+        self.sshctech.show()
+        self.sshctech.setWindowTitle('Add an SSH connection')
+        self.sshctech.setWindowIcon(icon)
+        self.sshctech.setFixedSize(codecwidth*1.15,codecwidth/2.65)
+
+    def sshp(self):
+        self.sshptech=SSHPAgent()
+        self.sshptech.show()
+        self.sshptech.setWindowTitle('Check your SSH connections')
+        self.sshptech.setWindowIcon(icon)
+        self.sshptech.setFixedWidth(codecwidth)
+
     def pingsubs(self):
         if widgetdva.isVisible() == True:
             widgetdva.hide()
         else:
             widgetdva.show()
-            widgetdva.subtext.setText("Hello User!")
+            widgetdva.settext("Hello User!")
             widgetdva.subsdecay(2)
         if conf.value('animated') == 'False' or conf.value('animated') == 'false':
             pass
@@ -149,12 +194,12 @@ class Codec(QtWidgets.QWidget):
         dishback=os.system("ping -c 1 google.com")
         if dishback == False:
             widgetdva.show()
-            widgetdva.subtext.setText("Network Online!")
+            widgetdva.settext("Network Online!")
             widgetdva.subsdecay(2)
             speechtech.speech()
         else:
             widgetdva.show()
-            widgetdva.subtext.setText("Huh, it seems you aren't connected...")
+            widgetdva.settext("Huh, it seems you aren't connected...")
             widgetdva.subsdecay(4)
             speechtech.speech()
 
@@ -168,25 +213,6 @@ class Codec(QtWidgets.QWidget):
 
     def quitter(self):
         sys.exit(app.exec())
-
-class AboutInfo(QtWidgets.QWidget):
-
-    def __init__(self):
-        super().__init__()
-
-        self.layout=QtWidgets.QGridLayout(self)
-        self.logo=QPixmap(os.path.dirname(os.path.realpath(__file__))+'/assets/logo.png')
-        self.label=QtWidgets.QLabel(self)
-        self.label.setPixmap(self.logo)
-        self.label.setGeometry(0,0,256,256)
-        self.layout.addWidget(self.label,0,0)
-        self.abouttext=QtWidgets.QLabel("<h1><a href='https://github.com/RallyCorder/Codec/'>Codec</a></h1>\n developped by <a href='https://github.com/RallyCorder/'>RallyCorder</a><br>Built with <a href='https://www.qt.io/development/qt-framework/python-bindings'>Qt6 PySide</a>")
-        self.abouttext.setOpenExternalLinks(True)
-        self.layout.addWidget(self.abouttext,0,1)
-abouttech=AboutInfo()
-abouttech.setWindowTitle('About Codec')
-abouttech.setWindowIcon(icon)
-abouttech.setFixedSize(codecwidth*1.5,codecwidth)
 
 nb=1
 class UserCmd(QtWidgets.QWidget):
@@ -211,8 +237,8 @@ class UserCmd(QtWidgets.QWidget):
 
     def addusercmd(self):
         conf.beginGroup('Custom')
-        title=usertech.titlebox.toPlainText()
-        cmd=usertech.cmdbox.toPlainText()
+        title=self.titlebox.toPlainText()
+        cmd=self.cmdbox.toPlainText()
         cmdin=cmd+'user'
         cmdcleaned=re.sub("\\W","_",cmdin)
         titlecleaned=re.sub("\\W","_",title)
@@ -221,21 +247,20 @@ def {3}():
     os.system("{2}")
 {1}.triggered.connect({3})
 self.customdd.addAction({1})""".format(title,titlecleaned,cmd,cmdcleaned)
-        code=compile(template,'<string>','exec')
-        def miniloop():
-            if conf.value('usercmd'+str(usertech.nbcap))!=None:
-                usertech.nbcap+=1
-                miniloop()
-            else:
-                conf.setValue('usercmd'+str(usertech.nbcap),template)
-        miniloop()
-        conf.endGroup()
-        conf.sync()
-        os.execv(sys.executable, ['Codec'] + sys.argv)
-usertech=UserCmd()
-usertech.setWindowTitle('Add a user command')
-usertech.setWindowIcon(icon)
-usertech.setFixedSize(codecwidth*2,codecwidth-codecwidth/3)
+        try:
+            code=compile(template,'<string>','exec')
+            def miniloop():
+                if conf.value('usercmd'+str(self.nbcap))!=None:
+                    self.nbcap+=1
+                    miniloop()
+                else:
+                    conf.setValue('usercmd'+str(self.nbcap),template)
+            miniloop()
+            conf.endGroup()
+            conf.sync()
+            os.execv(sys.executable, ['Codec'] + sys.argv)
+        except SyntaxError:
+            print('Invalid Syntax')
 
 class SSHCAgent(QtWidgets.QWidget):
 
@@ -309,7 +334,7 @@ class SSHCAgent(QtWidgets.QWidget):
         self.hostport.hide()
         self.password.hide()
         self.keyButton.hide()
-        sshctech.setFixedSize(codecwidth*1.15,codecwidth/2.65)
+        self.setFixedSize(codecwidth*1.15,codecwidth/2.65)
 
     def advancedmenu(self):
         self.quickbox.hide()
@@ -321,10 +346,10 @@ class SSHCAgent(QtWidgets.QWidget):
         self.hostport.show()
         self.password.show()
         self.keyButton.show()
-        sshctech.setFixedSize(codecwidth*1.15,codecwidth*0.90)
+        self.setFixedSize(codecwidth*1.15,codecwidth*0.90)
 
     def normalconnect(self):
-        text=sshctech.quickbox.toPlainText()
+        text=self.quickbox.toPlainText()
         os.system(text)
 
     def advancedconnect(self):
@@ -345,22 +370,17 @@ class SSHCAgent(QtWidgets.QWidget):
             else:
                 ssh.connect(hostname=address,username=usernick,password=passw,port=portu,key_filename=keyf,timeout=3)
             widgetdva.show()
-            widgetdva.subtext.setText("I'm in!")
+            widgetdva.settext("I'm in!")
             widgetdva.subsdecay(2)
             speechtech.speech()
             ssh.save_host_keys(conf.value('known_hosts'))
             ssh.close()
         except paramiko.SSHException as error:
             widgetdva.show()
-            widgetdva.subtext.setText(f"There seems to be an error... [{error}]")
+            widgetdva.settext(f"There seems to be an error... [{error}]")
             widgetdva.subsdecay(4)
             speechtech.speech()
             ssh.close()
-            
-sshctech=SSHCAgent()
-sshctech.setWindowTitle('Add an SSH connection')
-sshctech.setWindowIcon(icon)
-sshctech.setFixedSize(codecwidth*1.15,codecwidth/2.65)
 
 class SSHPAgent(QtWidgets.QWidget):
 
@@ -392,10 +412,10 @@ class SSHPAgent(QtWidgets.QWidget):
         self.inputer.hide()
         self.knownhostsValue=None
         self.authorizedkeysValue=None
-        if conf.value('ssh_known_hosts') != '' and conf.value('ssh_athorised_keys') != '':
+        if conf.value('ssh_known_hosts') != '' and conf.value('ssh_authorised_keys') != '':
             self.addUp()
             self.knownhostsValue=conf.value('ssh_known_hosts')
-            self.authorizedkeysValue=conf.value('ssh_athorised_keys')
+            self.authorizedkeysValue=conf.value('ssh_authorised_keys')
         style=self.style()
         good_icon=style.standardIcon(QStyle.StandardPixmap.SP_DialogApplyButton)
         if conf.value('ssh_known_hosts') != '':
@@ -437,7 +457,7 @@ class SSHPAgent(QtWidgets.QWidget):
             cleared=self.authorizedkeysValue.replace('/','C:\\',1)
         else:
             cleared=self.authorizedkeysValue
-        conf.setValue('ssh_athorised_keys',self.authorizedkeysValue)
+        conf.setValue('ssh_authorised_keys',self.authorizedkeysValue)
         conf.sync()
         os.execv(sys.executable, ['Codec'] + sys.argv)
 
@@ -445,7 +465,7 @@ class SSHPAgent(QtWidgets.QWidget):
         ssh=paramiko.SSHClient()
         ssh.load_host_keys(conf.value('ssh_known_hosts'))
         x=0
-        authkeys=conf.value('ssh_athorised_keys')
+        authkeys=conf.value('ssh_authorised_keys')
         for element in range(len(ssh._host_keys._entries)):
             entryname=ssh._host_keys._entries[x].__str__()
             clearname=re.split("'",entryname)
@@ -468,32 +488,32 @@ def loginpart(self):
 
     def connectsequence(self):
 
-        usernick=sshptech.namebox.toPlainText()
-        usercom=sshptech.combox.toPlainText()
+        usernick=self.namebox.toPlainText()
+        usercom=self.combox.toPlainText()
         ssh=paramiko.SSHClient()
         ssh.load_host_keys(conf.value('ssh_known_hosts'))
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:
             ssh.connect(hostname='{1}',key_filename='{2}',username=usernick,timeout=500)
             widgetdva.show()
-            widgetdva.subtext.setText("I'm in!")
+            widgetdva.settext("I'm in!")
             widgetdva.subsdecay(2)
             speechtech.speech()
             stdin,stdout,stderr=ssh.exec_command(usercom)
             output=stdout.read().decode('utf-8')
             comerror=stderr.read().decode('utf-8')
             if output:
-                widgetdva.subtext.setText(output)
+                widgetdva.settext(output)
                 widgetdva.subsdecay(2)
                 speechtech.speech()
             if comerror:
-                widgetdva.subtext.setText('Error : '+comerror)
+                widgetdva.settext('Error : '+comerror)
                 widgetdva.subsdecay(2)
                 speechtech.speech()
             ssh.close()
         except paramiko.SSHException as error:
             widgetdva.show()
-            widgetdva.subtext.setText(f"There seems to be an error... ["+str(error)+" ]")
+            widgetdva.settext(f"There seems to be an error... ["+str(error)+" ]")
             widgetdva.subsdecay(4)
             speechtech.speech()
             ssh.close()
@@ -509,12 +529,6 @@ self.layout.addWidget(self.{0})""".format('connection'+str(x),entryname,authkeys
             code=compile(template,'<string>','exec')
             exec(code)
             x+=1
-
-sshptech=SSHPAgent()
-sshptech.setWindowTitle('Check your SSH connections')
-sshptech.setWindowIcon(icon)
-sshptech.setFixedWidth(codecwidth)
-
 
 class Blink(QtWidgets.QWidget):
 
