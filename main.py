@@ -5,12 +5,15 @@ import os
 import platform
 import subprocess
 import re
-import paramiko
+import socket
 from PySide6 import QtCore,QtWidgets,QtGui
-from PySide6.QtWidgets import QApplication, QWidget, QStyle, QStyleFactory
-from PySide6.QtGui import QPixmap, QAction, QWindow, QScreen, QIcon
-from PySide6.QtCore import Qt, QSize, QObject, QSettings
-import codec_dev
+from PySide6.QtWidgets import QApplication, QWidget, QStyle
+from PySide6.QtGui import QPixmap, QAction, QIcon
+from PySide6.QtCore import Qt, QSettings
+try:
+    import codec_dev
+except ImportError:
+    pass
 
 app=QtWidgets.QApplication([])
 icon=QIcon(os.path.dirname(os.path.realpath(__file__))+'/assets/logo.png')
@@ -57,7 +60,7 @@ class Subs(QtWidgets.QWidget):
             stopspeak=threading.Timer(lifetime,speechtech.speechend)
             stopspeak.start()
 widgetdva=Subs()
-widgetdva.setFixedHeight(35)
+widgetdva.setFixedHeight(QApplication.font().pointSize()*4)
 widgetdva.setWindowFlags(QtCore.Qt.WindowType.WindowStaysOnTopHint|QtCore.Qt.WindowType.FramelessWindowHint)
 widgetdva.setWindowTitle('CodecSpeech')
 
@@ -85,7 +88,7 @@ class Codec(QtWidgets.QWidget):
         actiondd.addAction(blinkact)
         blinkact.setShortcut(Qt.Key.Key_Space)
 
-        netact=QtGui.QAction('Check &Network',self)
+        netact=QtGui.QAction('Check &network',self)
         netact.triggered.connect(self.satcheck)
         actiondd.addAction(netact)
 
@@ -93,13 +96,17 @@ class Codec(QtWidgets.QWidget):
         useract.triggered.connect(self.usercmd)
         actiondd.addAction(useract)
 
-        sshcact=QtGui.QAction('&Add an SSH connection',self)
-        sshcact.triggered.connect(self.sshc)
-        actiondd.addAction(sshcact)
+        try:
+            import codec_dev
+            sshcact=QtGui.QAction('&Add an SSH connection',self)
+            sshcact.triggered.connect(self.sshc)
+            actiondd.addAction(sshcact)
 
-        sshpact=QtGui.QAction('&Check your SSH connections',self)
-        sshpact.triggered.connect(self.sshp)
-        actiondd.addAction(sshpact)
+            sshpact=QtGui.QAction('&Check your SSH connections',self)
+            sshpact.triggered.connect(self.sshp)
+            actiondd.addAction(sshpact)
+        except ImportError:
+            pass
 
         settingsact=QtGui.QAction('&Settings',self)
         settingsact.triggered.connect(self.settings)
@@ -183,38 +190,36 @@ class Codec(QtWidgets.QWidget):
         self.settingstech.setFixedSize(codecwidth*2,codecwidth)
 
     def pingsubs(self):
-        if widgetdva.isVisible() == True:
-            widgetdva.hide()
-        else:
-            widgetdva.show()
-            widgetdva.settext("Hello User!")
-            widgetdva.subsdecay(2)
+        widgetdva.show()
+        widgetdva.settext("Hello User!")
+        widgetdva.subsdecay(2)
         if conf.value('animated') == 'True' or conf.value('animated') == 'true':
             speechtech.speech()
 
     def satcheck(self):
-        dishback=os.system("ping -c 1 google.com")
-        if dishback == False:
-            widgetdva.show()
-            widgetdva.settext("Network Online!")
-            widgetdva.subsdecay(2)
-            speechtech.speech()
-        else:
+        try:
+            with socket.create_connection(('8.8.8.8',53),timeout=2):
+                widgetdva.show()
+                widgetdva.settext("Network Online!")
+                widgetdva.subsdecay(2)
+                speechtech.speech()
+        except OSError:
             widgetdva.show()
             widgetdva.settext("Huh, it seems you aren't connected...")
             widgetdva.subsdecay(4)
             speechtech.speech()
 
     def helpdocs(self):
-        if platform.system()=='Darwin':
+        OS=platform.system()
+        if OS=='Darwin':
             subprocess.call(('open',os.path.dirname(os.path.realpath(__file__))+'/docs.md'))
-        elif platform.system()=='Windows':
+        elif OS=='Windows':
             os.startfile(os.path.dirname(os.path.realpath(__file__))+'/docs.md')
         else:
             subprocess.call(('xdg-open',os.path.dirname(os.path.realpath(__file__))+'/docs.md'))
 
     def quitter(self):
-        sys.exit(app.exec())
+        app.quit()
 
 class Settings(QtWidgets.QWidget):
 
@@ -227,11 +232,11 @@ class Settings(QtWidgets.QWidget):
         
         self.layout=QtWidgets.QGridLayout(self)
         self.themelabel=QtWidgets.QLabel('<b>Theme</b>')
-        self.spritelabel=QtWidgets.QLabel('<b>Spritesheet</b> *')
-        self.animatedlabel=QtWidgets.QLabel('<b>Animations</b> *')
-        self.sshauthlabel=QtWidgets.QLabel('<b>SSH Authorised keys</b> *')
-        self.sshknownlabel=QtWidgets.QLabel('<b>SSH Known hosts</b> *')
-        self.sizelabel=QtWidgets.QLabel('<b>Window size</b> *')
+        self.spritelabel=QtWidgets.QLabel('<b>Spritesheet</b>')
+        self.animatedlabel=QtWidgets.QLabel('<b>Animations</b>')
+        self.sshauthlabel=QtWidgets.QLabel('<b>SSH Authorised keys</b>')
+        self.sshknownlabel=QtWidgets.QLabel('<b>SSH Known hosts</b>')
+        self.sizelabel=QtWidgets.QLabel('<b>Window size</b>')
         
         self.animatedswitch=QtWidgets.QCheckBox(self)
         if conf.value('animated') == 'True' or conf.value('animated') == 'true':
@@ -285,19 +290,16 @@ class Settings(QtWidgets.QWidget):
             self.sizebar.setItemIcon(3,select_icon)
         else:
             self.sizebar.setItemIcon(4,select_icon)
-
         
         self.sizecustom=QtWidgets.QDoubleSpinBox(self)
 
         self.applybutton=QtWidgets.QPushButton(self)
-        self.applybutton.setText('Apply')
+        self.applybutton.setText('Apply and restart')
         self.applybutton.clicked.connect(self.apply)
 
         self.cancelbutton=QtWidgets.QPushButton(self)
         self.cancelbutton.setText('Cancel')
         self.cancelbutton.clicked.connect(self.cancel)
-
-        self.restartlabel=QtWidgets.QLabel('* a restart may be required to apply this setting')
 
         self.layout.addWidget(self.themelabel,0,0)
         self.layout.addWidget(self.themeselect,0,1)
@@ -316,7 +318,6 @@ class Settings(QtWidgets.QWidget):
         self.layout.addWidget(self.sizebar,5,1)
         self.layout.addWidget(self.sizecustom,5,2)
         self.layout.addWidget(self.cancelbutton,6,0)
-        self.layout.addWidget(self.restartlabel,6,1)
         self.layout.addWidget(self.applybutton,6,2)
 
     def apply(self):
@@ -346,69 +347,29 @@ class Settings(QtWidgets.QWidget):
             conf.setValue('scale','1.5')
         if self.sizebar.currentIndex()==4:
             conf.setValue('scale',self.sizecustom.value())
+        conf.sync()
+        os.execv(sys.executable, [sys.executable]+sys.argv)
 
     def cancel(self):
         self.destroy()
 
     def spriteselect(self):
-        self.selectedSprite=QtWidgets.QFileDialog()
-        self.selectedSprite=QtWidgets.QFileDialog.getOpenFileUrl().__str__()
-        clear=re.split("'",self.selectedSprite)
-        clear.pop(0)
-        for x in range(3):
-            clear.pop(1)
-        self.selectedSprite=''.join(clear)
-        clearer=re.split('//',self.selectedSprite)
-        clearer.pop(0)
-        self.selectedSprite=''.join(clearer)
-        if platform.system()=='Windows':
-            cleared=self.selectedSprite.replace('/','C:\\',1)
-        else:
-            cleared=self.selectedSprite
-        if self.selectedSprite=='':
-            pass
-        else:
-            self.spritebar.setText(self.selectedSprite)
+        url,_=QtWidgets.QFileDialog.getOpenFileUrl(self,'Select a spritesheet')
+        if not url.isValid():
+            return 
+        self.spritebar.setPlainText(url.toLocalFile())
 
     def authselect(self):
-        self.selectedAuth=QtWidgets.QFileDialog()
-        self.selectedAuth=QtWidgets.QFileDialog.getOpenFileUrl().__str__()
-        clear=re.split("'",self.selectedAuth)
-        clear.pop(0)
-        for x in range(3):
-            clear.pop(1)
-        self.selectedAuth=''.join(clear)
-        clearer=re.split('//',self.selectedAuth)
-        clearer.pop(0)
-        self.selectedAuth=''.join(clearer)
-        if platform.system()=='Windows':
-            cleared=self.selectedAuth.replace('/','C:\\',1)
-        else:
-            cleared=self.selectedAuth
-        if self.selectedAuth=='':
-            pass
-        else:
-            self.sshauthbar.setText(self.selectedAuth)
+        url,_=QtWidgets.QFileDialog.getOpenFileUrl(self,'Select a authorised keys file')
+        if not url.isValid():
+            return 
+        self.sshauthbar.setPlainText(url.toLocalFile())
 
     def knownselect(self):
-        self.selectedKnown=QtWidgets.QFileDialog()
-        self.selectedKnown=QtWidgets.QFileDialog.getOpenFileUrl().__str__()
-        clear=re.split("'",self.selectedKnown)
-        clear.pop(0)
-        for x in range(3):
-            clear.pop(1)
-        self.selectedKnown=''.join(clear)
-        clearer=re.split('//',self.selectedKnown)
-        clearer.pop(0)
-        self.selectedKnown=''.join(clearer)
-        if platform.system()=='Windows':
-            cleared=self.selectedKnown.replace('/','C:\\',1)
-        else:
-            cleared=self.selectedKnown
-        if self.selectedKnown=='':
-            pass
-        else:
-            self.sshknownbar.setText(self.selectedKnown)
+        url,_=QtWidgets.QFileDialog.getOpenFileUrl(self,'Select a known hosts file')
+        if not url.isValid():
+            return 
+        self.sshknownbar.setPlainText(url.toLocalFile())
 
 class AboutInfo(QtWidgets.QWidget):
 
@@ -469,7 +430,7 @@ self.customdd.addAction({1})""".format(title,titlecleaned,cmd,cmdcleaned)
             miniloop()
             conf.endGroup()
             conf.sync()
-            os.execv(sys.executable, ['Codec'] + sys.argv)
+            os.execv(sys.executable,[sys.executable]+sys.argv)
         except SyntaxError:
             print('Invalid Syntax')
 

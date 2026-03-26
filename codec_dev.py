@@ -1,26 +1,16 @@
 import sys
-import threading
-import random
 import os
-import platform
-import subprocess
-import re
 import paramiko
-from PySide6 import QtCore,QtWidgets,QtGui
-from PySide6.QtWidgets import QApplication, QWidget, QStyle, QStyleFactory
-from PySide6.QtGui import QPixmap, QAction, QWindow, QScreen, QIcon
-from PySide6.QtCore import Qt, QSize, QObject, QSettings
+import socket
+from PySide6 import QtCore,QtWidgets
+from PySide6.QtWidgets import QWidget, QStyle
+from PySide6.QtCore import QSettings
 
 conf=QSettings('Codec','codec')
 
-conf.value('theme')
-conf.value('scale')
-conf.value('animated')
-conf.value('spritesheet')
 conf.value('ssh_known_hosts')
 conf.value('ssh_authorised_keys')
 conf.sync()
-
 
 class SSHCAgent(QtWidgets.QWidget):
 
@@ -69,21 +59,10 @@ class SSHCAgent(QtWidgets.QWidget):
         self.layout.addWidget(self.connecter)
 
     def openFile(self):
-        self.key=QtWidgets.QFileDialog()
-        self.key.setViewMode(QtWidgets.QFileDialog.ViewMode.List)
-        self.key=QtWidgets.QFileDialog.getOpenFileUrl().__str__()
-        clear=re.split("'",self.key)
-        clear.pop(0)
-        for x in range(3):
-            clear.pop(1)
-        self.key=''.join(clear)
-        clearer=re.split('//',self.key)
-        clearer.pop(0)
-        self.key=''.join(clearer)
-        if platform.system()=='Windows':
-            cleared=self.key.replace('/','C:\\',1)
-        else:
-            cleared=self.key
+        url,_=QtWidgets.QFileDialog.getOpenFileUrl(self,'Select a file')
+        if not url.isValid():
+            return 
+        self.key.setPlainText(url.toLocalFile())
 
     def normalmenu(self):
         self.quickbox.show()
@@ -153,13 +132,13 @@ class SSHPAgent(QtWidgets.QWidget):
         self.widgetdva=widgetdva
         self.speechtech=speechtech
         self.knownhostsButton=QtWidgets.QPushButton(self)
-        self.knownhostsButton.setText("Open 'known_hosts' file")
+        self.knownhostsButton.setText("Open known hosts file")
         self.knownhostsButton.clicked.connect(self.openKHFile)
         self.layout.addWidget(self.knownhostsButton)
-        self.authorizedkeysButton=QtWidgets.QPushButton(self)
-        self.authorizedkeysButton.setText("Open 'authorized_keys' file")
-        self.authorizedkeysButton.clicked.connect(self.openAKFile)
-        self.layout.addWidget(self.authorizedkeysButton)
+        self.authorisedkeysButton=QtWidgets.QPushButton(self)
+        self.authorisedkeysButton.setText("Open authorised keys file")
+        self.authorisedkeysButton.clicked.connect(self.openAKFile)
+        self.layout.addWidget(self.authorisedkeysButton)
         self.namebox=QtWidgets.QTextEdit(self)
         self.namebox.setPlaceholderText("Enter a username")
         self.namebox.setTabChangesFocus(True)
@@ -176,53 +155,33 @@ class SSHPAgent(QtWidgets.QWidget):
         self.inputer.hide()
         self.selectedentry=None
         self.knownhostsValue=None
-        self.authorizedkeysValue=None
+        self.authorisedkeysValue=None
         if conf.value('ssh_known_hosts') != '' and conf.value('ssh_authorised_keys') != '':
             self.addUp()
             self.knownhostsValue=conf.value('ssh_known_hosts')
-            self.authorizedkeysValue=conf.value('ssh_authorised_keys')
+            self.authorisedkeysValue=conf.value('ssh_authorised_keys')
+            self.authorisedkeysButton.hide()
+            self.knownhostsButton.hide()
         style=self.style()
         good_icon=style.standardIcon(QStyle.StandardPixmap.SP_DialogApplyButton)
         if conf.value('ssh_known_hosts') != '':
             self.knownhostsButton.setIcon(good_icon)
         if conf.value('ssh_authorised_keys') != '':
-            self.authorizedkeysButton.setIcon(good_icon)
+            self.authorisedkeysButton.setIcon(good_icon)
 
     def openKHFile(self):
-        self.knownhostsValue=QtWidgets.QFileDialog()
-        self.knownhostsValue=QtWidgets.QFileDialog.getOpenFileUrl().__str__()
-        clear=re.split("'",self.knownhostsValue)
-        clear.pop(0)
-        for x in range(3):
-            clear.pop(1)
-        self.knownhostsValue=''.join(clear)
-        clearer=re.split('//',self.knownhostsValue)
-        clearer.pop(0)
-        self.knownhostsValue=''.join(clearer)
-        if platform.system()=='Windows':
-            cleared=self.knownhostsValue.replace('/','C:\\',1)
-        else:
-            cleared=self.knownhostsValue
-        conf.setValue('ssh_known_hosts',self.knownhostsValue)
+        url,_=QtWidgets.QFileDialog.getOpenFileUrl(self,'Select a known hosts file')
+        if not url.isValid():
+            return 
+        conf.setValue('ssh_known_hosts',url.toLocalFile())
         conf.sync()
         os.execv(sys.executable, ['Codec'] + sys.argv)
 
     def openAKFile(self):
-        self.authorizedkeysValue=QtWidgets.QFileDialog()
-        self.authorizedkeysValue=QtWidgets.QFileDialog.getOpenFileUrl().__str__()
-        clear=re.split("'",self.authorizedkeysValue)
-        clear.pop(0)
-        for x in range(3):
-            clear.pop(1)
-        self.authorizedkeysValue=''.join(clear)
-        clearer=re.split('//',self.authorizedkeysValue)
-        clearer.pop(0)
-        self.authorizedkeysValue=''.join(clearer)
-        if platform.system()=='Windows':
-            cleared=self.authorizedkeysValue.replace('/','C:\\',1)
-        else:
-            cleared=self.authorizedkeysValue
-        conf.setValue('ssh_authorised_keys',self.authorizedkeysValue)
+        url,_=QtWidgets.QFileDialog.getOpenFileUrl(self,'Select a authorised keys file')
+        if not url.isValid():
+            return 
+        conf.setValue('ssh_authorised_keys',url.toLocalFile())
         conf.sync()
         os.execv(sys.executable, ['Codec'] + sys.argv)
 
@@ -237,19 +196,16 @@ class SSHPAgent(QtWidgets.QWidget):
             try:
                 ssh.connect(hostname=hostname,key_filename=conf.value('ssh_authorised_keys'),username=usernick,timeout=500)
                 self.widgetdva.show()
-                self.widgetdva.settext("I'm in!")
-                self.widgetdva.subsdecay(2)
-                self.speechtech.speech()
                 stdin,stdout,stderr=ssh.exec_command(usercom)
                 output=stdout.read().decode('utf-8')
                 comerror=stderr.read().decode('utf-8')
                 if output:
                     self.widgetdva.settext(output)
-                    self.widgetdva.subsdecay(2)
+                    self.widgetdva.subsdecay(len(usercom)/3)
                     self.speechtech.speech()
                 if comerror:
                     self.widgetdva.settext('Error : '+comerror)
-                    self.widgetdva.subsdecay(2)
+                    self.widgetdva.subsdecay(len(usercom)/3)
                     self.speechtech.speech()
                 ssh.close()
             except paramiko.SSHException as error:
@@ -262,33 +218,21 @@ class SSHPAgent(QtWidgets.QWidget):
         self.namebox.show()
         self.combox.show()
         self.inputer.show()
-        self.inputer.clicked.connect(connectsequence(self,usernick=self.namebox.toPlainText(),hostname=connection))
+        self.inputer.clicked.connect(lambda:connectsequence(self,usernick=self.namebox.toPlainText(),hostname=connection))
 
     def addUp(self):
-        ssh=paramiko.SSHClient()
+        style=self.style()
+        online_icon=style.standardIcon(QStyle.StandardPixmap.SP_DialogYesButton)
+        offline_icon=style.standardIcon(QStyle.StandardPixmap.SP_DialogNoButton)
+        ssh = paramiko.SSHClient()
         ssh.load_host_keys(conf.value('ssh_known_hosts'))
-        x=0
-        authkeys=conf.value('ssh_authorised_keys')
-        for element in range(len(ssh._host_keys._entries)):
-            entryname=ssh._host_keys._entries[x].__str__()
-            clearname=re.split("'",entryname)
-            clearname.pop(0)
-            clearname.pop(1)
-            entryname=''.join(clearname)
-            entrypkey=ssh._host_keys._entries[x].__str__()
-            template="""style=self.style()
-online_icon=style.standardIcon(QStyle.StandardPixmap.SP_DialogYesButton)
-offline_icon=style.standardIcon(QStyle.StandardPixmap.SP_DialogNoButton)
-self.{0}=QtWidgets.QPushButton(self)
-check=os.system('ping -c 1 -W 1 {1}')
-if check==0:
-    self.{0}.setIcon(online_icon)
-else:
-    self.{0}.setIcon(offline_icon)
-self.{0}.setText("{1}")
-
-self.{0}.clicked.connect(self.loginpart(connection='{1}'))
-self.layout.addWidget(self.{0})""".format('connection'+str(x),entryname,authkeys)
-            code=compile(template,'<string>','exec')
-            exec(code)
-            x+=1
+        for x, entry in enumerate(ssh._host_keys._entries):
+            entryname = str(entry).split("'")[1]
+            entrybutton = QtWidgets.QPushButton(entryname,self)
+            entrybutton.clicked.connect(lambda _,host=entryname:self.loginpart(host))
+            try:
+                with socket.create_connection((entryname,22),timeout=2):
+                    entrybutton.setIcon(online_icon)
+            except OSError:
+                entrybutton.setIcon(offline_icon)
+            self.layout.addWidget(entrybutton)
