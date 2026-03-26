@@ -180,7 +180,7 @@ class Codec(QtWidgets.QWidget):
         self.usertech.setFixedSize(codecwidth*2,codecwidth-codecwidth/3)
 
     def sshc(self):
-        self.sshctech=codec_dev.SSHCAgent(codecwidth)
+        self.sshctech=codec_dev.SSHCAgent(codecwidth,widgetdva,speechtech)
         self.sshctech.show()
         self.sshctech.setWindowTitle('Add an SSH connection')
         self.sshctech.setWindowIcon(icon)

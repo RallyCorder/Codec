@@ -14,11 +14,13 @@ conf.sync()
 
 class SSHCAgent(QtWidgets.QWidget):
 
-    def __init__(self,codecwidth):
+    def __init__(self,codecwidth,widgetdva,speechtech):
         super().__init__()
 
         self.layout=QtWidgets.QGridLayout(self)
         self.codecwidth=codecwidth
+        self.widgetdva=widgetdva
+        self.speechtech=speechtech
         self.quickbox=QtWidgets.QTextEdit(self)
         self.quickbox.setPlaceholderText("Insert a ssh command 'ssh -p 2222 foo@bar.org'")
         self.layout.addWidget(self.quickbox)
@@ -109,17 +111,17 @@ class SSHCAgent(QtWidgets.QWidget):
                 ssh.connect(hostname=address,username=usernick,password=passw,key_filename=keyf,timeout=3)
             else:
                 ssh.connect(hostname=address,username=usernick,password=passw,port=portu,key_filename=keyf,timeout=3)
-            main.main.widgetdva.show()
-            main.widgetdva.settext("I'm in!")
-            main.widgetdva.subsdecay(2)
-            main.speechtech.speech()
+            self.widgetdva.show()
+            self.widgetdva.settext("I'm in!")
+            self.widgetdva.subsdecay(2)
+            self.speechtech.speech()
             ssh.save_host_keys(conf.value('known_hosts'))
             ssh.close()
         except paramiko.SSHException as error:
-            main.widgetdva.show()
-            main.widgetdva.settext(f"There seems to be an error... [{error}]")
-            main.widgetdva.subsdecay(4)
-            main.speechtech.speech()
+            self.widgetdva.show()
+            self.widgetdva.settext(f"There seems to be an error... [{error}]")
+            self.widgetdva.subsdecay(4)
+            self.speechtech.speech()
             ssh.close()
 
 class SSHPAgent(QtWidgets.QWidget):
@@ -175,7 +177,7 @@ class SSHPAgent(QtWidgets.QWidget):
             return 
         conf.setValue('ssh_known_hosts',url.toLocalFile())
         conf.sync()
-        os.execv(sys.executable, ['Codec'] + sys.argv)
+        os.execv(sys.executable, [sys.executable]+sys.argv)
 
     def openAKFile(self):
         url,_=QtWidgets.QFileDialog.getOpenFileUrl(self,'Select a authorised keys file')
@@ -183,7 +185,7 @@ class SSHPAgent(QtWidgets.QWidget):
             return 
         conf.setValue('ssh_authorised_keys',url.toLocalFile())
         conf.sync()
-        os.execv(sys.executable, ['Codec'] + sys.argv)
+        os.execv(sys.executable, [sys.executable]+sys.argv)
 
     def loginpart(self,connection):   
 
