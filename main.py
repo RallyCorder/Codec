@@ -8,7 +8,7 @@ import re
 import socket
 from PySide6 import QtCore,QtWidgets,QtGui
 from PySide6.QtWidgets import QApplication, QWidget, QStyle
-from PySide6.QtGui import QPixmap, QAction, QIcon
+from PySide6.QtGui import QPixmap, QAction, QIcon, QWindow
 from PySide6.QtCore import Qt, QSettings
 try:
     import codec_dev
@@ -74,6 +74,7 @@ class Codec(QtWidgets.QWidget):
         self.label.setPixmap(self.pixmap)
         self.height=self.pixmap.height()
         self.width=self.pixmap.width()//5
+        self.setAttribute(Qt.WA_NativeWindow,True)
         
         self.menubar=QtWidgets.QMenuBar(self)
 
@@ -153,6 +154,16 @@ class Codec(QtWidgets.QWidget):
             timer.timeout.connect(blinktech.blinker)
             for i in range(442108):
                 timer.start(self.pseudorandomblink[0+1])
+
+    def mousePressEvent(self,event):
+        if event.button()==Qt.LeftButton:
+            widget.label.move(int(-widget.width),0)
+            grip=self.windowHandle()
+            if grip is not None:
+                grip.startSystemMove()
+            event.accept()
+        else:
+            super().mousePressEvent(event)
 
     def about(self):
         self.abouttech=AboutInfo()
@@ -294,11 +305,11 @@ class Settings(QtWidgets.QWidget):
         self.sizecustom=QtWidgets.QDoubleSpinBox(self)
 
         self.applybutton=QtWidgets.QPushButton(self)
-        self.applybutton.setText('Apply and restart')
+        self.applybutton.setText('&Apply and restart')
         self.applybutton.clicked.connect(self.apply)
 
         self.cancelbutton=QtWidgets.QPushButton(self)
-        self.cancelbutton.setText('Cancel')
+        self.cancelbutton.setText('&Cancel')
         self.cancelbutton.clicked.connect(self.cancel)
 
         self.layout.addWidget(self.themelabel,0,0)

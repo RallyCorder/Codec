@@ -24,7 +24,7 @@ class SSHCAgent(QtWidgets.QWidget):
         self.layout.addWidget(self.quickbox)
         self.quickbox.setTabChangesFocus(True)
         self.advanced=QtWidgets.QPushButton(self)
-        self.advanced.setText('Advanced')
+        self.advanced.setText('&Advanced')
         self.advanced.clicked.connect(self.advancedmenu)
         self.layout.addWidget(self.advanced)
         self.hostaddress=QtWidgets.QPlainTextEdit(self)
@@ -49,12 +49,12 @@ class SSHCAgent(QtWidgets.QWidget):
         self.password.hide()
         self.keyButton=QtWidgets.QPushButton(self)
         self.keyButton.clicked.connect(self.openFile)
-        self.keyButton.setText('Open a key file')
+        self.keyButton.setText('&Open a key file')
         self.layout.addWidget(self.keyButton)
         self.keyButton.hide()
         self.key=None
         self.connecter=QtWidgets.QPushButton(self)
-        self.connecter.setText('Connect')
+        self.connecter.setText('&Connect')
         self.connecter.clicked.connect(self.normalconnect)
         self.layout.addWidget(self.connecter)
 
@@ -66,7 +66,7 @@ class SSHCAgent(QtWidgets.QWidget):
 
     def normalmenu(self):
         self.quickbox.show()
-        self.advanced.setText('Advanced')
+        self.advanced.setText('&Advanced')
         self.advanced.clicked.connect(self.advancedmenu)
         self.connecter.clicked.connect(self.normalconnect)
         self.hostaddress.hide()
@@ -78,7 +78,7 @@ class SSHCAgent(QtWidgets.QWidget):
 
     def advancedmenu(self):
         self.quickbox.hide()
-        self.advanced.setText('Normal')
+        self.advanced.setText('&Normal')
         self.advanced.clicked.connect(self.normalmenu)
         self.connecter.clicked.connect(self.advancedconnect)
         self.hostaddress.show()
