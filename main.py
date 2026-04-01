@@ -242,12 +242,13 @@ class Settings(QtWidgets.QWidget):
         null_icon=style.standardIcon(QStyle.StandardPixmap.SP_CustomBase)
         
         self.layout=QtWidgets.QGridLayout(self)
-        self.themelabel=QtWidgets.QLabel('<b>Theme</b>')
+        self.themelabel=QtWidgets.QLabel('<b>Theme*</b>')
         self.spritelabel=QtWidgets.QLabel('<b>Spritesheet</b>')
         self.animatedlabel=QtWidgets.QLabel('<b>Animations</b>')
         self.sshauthlabel=QtWidgets.QLabel('<b>SSH Authorised keys</b>')
         self.sshknownlabel=QtWidgets.QLabel('<b>SSH Known hosts</b>')
         self.sizelabel=QtWidgets.QLabel('<b>Window size</b>')
+        self.themeinfo=QtWidgets.QLabel("* <i> package 'adwaita-qt6' is required</i>")
         
         self.animatedswitch=QtWidgets.QCheckBox(self)
         if conf.value('animated') == 'True' or conf.value('animated') == 'true':
@@ -329,6 +330,7 @@ class Settings(QtWidgets.QWidget):
         self.layout.addWidget(self.sizebar,5,1)
         self.layout.addWidget(self.sizecustom,5,2)
         self.layout.addWidget(self.cancelbutton,6,0)
+        self.layout.addWidget(self.themeinfo,6,1)
         self.layout.addWidget(self.applybutton,6,2)
 
     def apply(self):
