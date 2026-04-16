@@ -25,7 +25,7 @@ sha256sums=('SKIP')
 
 build() {
   cd Codec
-  python -m build --wheel --no-isolation
+  python -m build
 }
 
 package() {
