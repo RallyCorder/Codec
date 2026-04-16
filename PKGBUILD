@@ -24,11 +24,11 @@ source=("git+https://github.com/RallyCorder/Codec.git")
 sha256sums=('SKIP')
 
 build() {
-  cd Codec
+  cd Codec/src
   python -m build
 }
 
 package() {
-  cd Codec
+  cd Codec/src/
   python -m installer --destdir="$pkgdir" dist/*.whl
 }
