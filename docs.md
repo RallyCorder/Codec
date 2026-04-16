@@ -11,6 +11,10 @@
 - Help menu
   - Help
   - About
+- Modules
+  - Developer
+    - Adding SSH connections
+    - Checking SSH connections
 - Design philosophy
 - Extras
 
